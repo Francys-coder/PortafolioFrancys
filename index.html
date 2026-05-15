@@ -1,317 +1,438 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" /> 
-    <link rel="stylesheet" href="style.css">
-    <title>Porfolio FRANCISCO</title>
+    <title>Acceso Protegido Premium v3</title>
+    <style>
+        body {
+            margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            background-size: cover; background-position: center;
+            transition: background-image 1.2s ease-in-out; overflow: hidden; background-color: #0f111a;
+        }
+
+        body::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 12, 22, 0.4); z-index: 0;
+        }
+
+        /* CORRECCIÓN: Tarjeta principal con scroll nativo integrado */
+        .login-box {
+            position: relative; z-index: 1; background: rgba(20, 24, 40, 0.8);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            padding: 35px 25px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); width: 360px; text-align: center;
+            transition: all 0.3s ease; 
+            max-height: 85vh; 
+            overflow-y: auto; /* Permite bajar si el contenido supera el tamaño de la tarjeta */
+        }
+
+        /* Diseño de barra de desplazamiento moderna */
+        .login-box::-webkit-scrollbar { width: 6px; }
+        .login-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .login-box::-webkit-scrollbar-track { background: transparent; }
+
+        .form-content-wrapper { text-align: left; }
+
+        .login-box h2 { margin: 0 0 5px 0; color: #ffffff; font-weight: 600; font-size: 24px; letter-spacing: 0.5px; text-align: center; }
+        .box-subtitle { color: #718096; font-size: 13px; margin: 0 0 20px 0; display: block; text-align: center; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 6px; color: #a0aec0; font-size: 13px; font-weight: 500; }
+        
+        .input-group input {
+            width: 100%; padding: 11px 12px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; box-sizing: border-box;
+            color: #ffffff; font-size: 14px; outline: none; transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #0078d4; background: rgba(255, 255, 255, 0.09);
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.25);
+        }
+
+        button {
+            width: 100%; padding: 11px; background-color: #0078d4; color: white; border: none;
+            border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+            margin-top: 8px; transition: background 0.2s ease, transform 0.1s ease;
+        }
+        button:hover { background-color: #1086e2; }
+        button:active { transform: scale(0.98); }
+
+        .error-message {
+            color: #ff4d4f; font-size: 13px; margin-top: 12px; display: none; align-items: center;
+            justify-content: center; background: rgba(255, 77, 79, 0.1); padding: 9px;
+            border-radius: 8px; border: 1px solid rgba(255, 77, 79, 0.2);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake-error { animation: shake 0.4s ease-in-out; border-color: rgba(255, 77, 79, 0.5) !important; }
+
+        /* Botón de la Esquina */
+        .admin-float-btn {
+            position: absolute; top: 25px; right: 25px; z-index: 10; width: 45px; height: 45px;
+            border-radius: 50%; background: rgba(20, 24, 40, 0.8); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15); color: #ffffff; font-size: 20px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease;
+        }
+
+        .secondary-links { margin-top: 15px; display: flex; justify-content: center; font-size: 13px; }
+        .link-item { color: #0078d4; cursor: pointer; text-decoration: none; }
+        .link-item:hover { text-decoration: underline; color: #1086e2; }
+
+        /* Estilos de paneles internos */
+        .section-title { color: #ffffff; font-size: 15px; margin: 20px 0 10px 0; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        .admin-panel-box { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        
+        .user-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.02); }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { color: #ffffff; font-size: 13px; font-weight: 500; }
+        .user-meta { color: #718096; font-size: 11px; }
+
+        .delete-btn { background: rgba(255, 77, 79, 0.15); color: #ff4d4f; border: 1px solid rgba(255, 77, 79, 0.2); border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; width: auto; margin: 0; }
+        .delete-btn:hover { background: #ff4d4f; color: white; }
+        
+        .shield-icon { font-size: 45px; margin-bottom: 10px; display: block; color: #0078d4; text-align: center; }
+    </style>
 </head>
 <body>
-    <!-- SECCION INICIO -->
-    <section class="inicio" id="inicio">
-        <div class="contenido">
-            <header>
-                <h1><a href="#">Francys-CODE - web designer</a></h1>
-                <nav>
-                    <ul>
-                        <li><a href="#inicio">Inicio</a></li>
-                        <li><a href="#sobre-mi">Sobre Mí</a></li>
-                        <li><a href="#
-                            #curriculum">Educacion</a></li>
-                        <li><a href="#contacto">Contacto</a></li>
-                    </ul>
-                </nav>
-                <div class="nav-responsive">
-                    <a href="#inicio">
-                        <i class="fa-solid fa-house"></i>
-                    </a>
-                    <a href="#sobre-mi">
-                        <i class="fa-solid fa-user"></i>
-                    </a>
-                    <a href="#servicios">
-                        <i class="fa-solid fa-gear"></i>
-                    </a>
-                    <a href="#trabajos">
-                        <i class="fa-solid fa-briefcase"></i>
-                    </a>
-                    <a href="#curriculum">
-                        <i class="fa-solid fa-square-poll-vertical"></i>
-                    </a>
-                    <a href="#contacto">
-                            <i class="fa-solid fa-envelope"></i>
-                    </a>
-                </div>
-            </header>
-            <h2 class="frase">Hola, soy <span class="resaltar">Francisco Felipe Juan Mateo.</span></h2>
+
+    <button class="admin-float-btn" id="btnAdmin" title="Gestionar Sistema" onclick="controladorBotonFlotante()">⚙️</button>
+
+    <div class="login-box" id="boxContainer">
         
-        </div>
-
-        <a href="#inicio">
-            <div class="subir">
-                <i class="fa-solid fa-arrow-up"></i>
-            </div>
-        </a>
-
-    </section>
-
-    <!-- SECCION SOBRE MI -->
-    <section class="sobre-mi" id="sobre-mi">
-        <div class="contenido fila">
-            <div class="contenedor-img">
-                <img src="fto de perfil.jpg" alt="">
-            </div>
+        <!-- VISTA 1: INICIO DE SESIÓN -->
+        <div id="viewLogin">
+            <h2>Iniciar Sesión</h2>
+            <span class="box-subtitle">Introduce tus datos de acceso</span>
             
-            <div class="info">
-                <div class="opciones">
-                    <button class="selected" id="btn-info-sobre-mi">Sobre Mí</button>
-                    <button id="btn-skills">conocimientos</button>
-                </div>
-                <div class="info-opcion" id="info-sobre-mi">
-                    <h2>Hola a todos! Soy <span class="color">Francy</span></h2>
-                    <p>soy un programador junior,soy alguien proactivo, siempre busco aprender mas a cada dia que pasa ya sea en el mundo laboral o en mi propia vida personal, por eso e logrado desarrollar cosas que yo crei ser imposibles, gracias al costante aprendizaje que un ser humano puede realizar.</p>
-                    <p>Disfruto creando cosas que viven en internet, ya sean sitios web, aplicaciones o cualquier otra cosa relacionada al mundo de la programacion, mi objetivo es mejorar mi rendimiento y experiencias para el mundo de la programacion, gracias a la inspiracion y la ayuda de exelentes herramientas que existen en linea.</p>
-                </div>
-                <div class="info-opcion" id="info-skills">
-                    <p>Resumen de mis conocimientos </p>
-
-                    <div class="skill">
-                        <div class="texto">
-                            <h3>HTML</h3>
-                            <h3>25%</h3>
-                        </div>
-                        <div class="contenedor-barra">
-                            <div class="relleno"></div>
-                        </div>
+            <div class="form-content-wrapper">
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label>Usuario</label>
+                        <input type="text" id="loginUser" required placeholder="Nombre de usuario">
                     </div>
-                    <div class="skill">
-                        <div class="texto">
-                            <h3>CSS</h3>
-                            <h3>25%</h3>
-                        </div>
-                        <div class="contenedor-barra">
-                            <div class="relleno"></div>
-                        </div>
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="loginPass" required placeholder="••••••••">
                     </div>
-                    <div class="skill">
-                        <div class="texto">
-                            <h3>Finanzas</h3>
-                            <h3>30%</h3>
-                        </div>
-                        <div class="contenedor-barra">
-                            <div class="relleno"></div>
-                        </div>
-                    </div>
-                    <div class="skill">
-                        <div class="texto">
-                            <h3>contabililidad</h3>
-                            <h3>75%</h3>
-                        </div>
-                        <div class="contenedor-barra">
-                            <div class="relleno"></div>
-                        </div>
-                    </div>
-                    <div class="skill">
-                        <div class="texto">
-                            <h3>Computacion</h3>
-                            <h3>60%</h3>
-                        </div>
-                        <div class="contenedor-barra">
-                            <div class="relleno"></div>
-                        </div>
-                    </div>
+                    <button type="submit">Ingresar</button>
+                    <div class="error-message" id="loginError">⚠️ Usuario o contraseña incorrectos</div>
+                </form>
+                <div class="secondary-links">
+                    <span class="link-item" onclick="cambiarModo('recuperacion')">¿Olvidaste tu contraseña?</span>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- SECCION SERVICIOS -->
-    <section class="servicios" id="servicios">
-        <div class="contenido">
-            <h2 class="titulo-seccion">MIS SERVICIOS</h2>
-            <div class="items-servicios">
-                <div class="item">
-                    <i class="fa-solid fa-code"></i>
-                    <h3>Desarrollo</h3>
-                    <p>Desarrollar paginas web y aplicaciones basicas</p>
-                </div>
-                <div class="item">
-                    <i class="fa-solid fa-object-group"></i>
-                    <h3>Diseño</h3>
-                    <p>Diseño de logos de Microempresas.</p>
-                </div>
-                <div class="item">
-                    <i class="fa-solid fa-microphone"></i>
-                    <h3>Marqueting</h3>
-                    <p>Crear publicidad para microempresas.</p>
-                </div>
-                <div class="item">
-                    <i class="fa-solid fa-download"></i>
-                    <h3>contador</h3>
-                    <p>Graduado en perrito contador con orientacion en computacion.</p>
-                </div>
-                <div class="item">
-                    <i class="fa-solid fa-down-left-and-up-right-to-center"></i>
-                    <h3>Creditos</h3>
-                    <p>Microcreditos de pequeña cantidad.</p>
-                </div>
-                <div class="item">
-                    <i class="fa-solid fa-circle-question"></i>
-                    <h3></h3>
-                    <p></p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECCION TRABAJOS -->
-    <section class="trabajos" id="trabajos">
-        <div class="contenido">
-            <h2 class="titulo-seccion">MIS TRABAJOS</h2>
-
-            <div class="portfolio">
-                <div class="item">
-                    <img src="t1.jpg" alt="">
-                    <div class="info-trabajo">
-                        <h2>Web Site</h2>
-                        <p>primero proyecto web</p>
-                        <a href="https://mattyucode.github.io/relojvidrio/"> <button>Visitar Proyecto</button></a>
-                    </div>
-                </div>
-                <div class="item">
-                    <img src="t2.jpg" alt="">
-                    <div class="info-trabajo">
-                        <h2>Web Site</h2>
-                        <p>venta de antenas </p>
-                        <a href="https://mattyucode.github.io/CardsProductos/#"> <button>Visitar Proyecto</button></a>
-                    </div>
-                </div>
-                <div class="item">
-                    <img src="t3.jpg" alt="">
-                    <div class="info-trabajo">
-                        <h2>Web Site</h2>
-                        <p>pagina creada para una empresa </p>
-                        <a href="https://mattyucode.github.io/microeconomia/index.html"> <button>Visitar Proyecto</button></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECCION CURRICULUM -->
-    <section class="curriculum" id="curriculum">
-        <div class="numeros">
-            <div class="item">
-                <span class="num">6</span>
-                <span class="txt">CLIENTES <br> SATISFECHOS</span>
-            </div>
-            <div class="item">
-                <span class="num">10</span>
-                <span class="txt">TRABAJOS <br> TERMINADOS</span>
-            </div>
-        
-            <div class="item">
-                <span class="num">20</span>
-                <span class="txt">PROYECTOS</span>
-            </div>
-        </div>
-        <div class="contenido">
-            <h2 class="titulo-seccion">EDUCACION</h2>
+        <!-- VISTA 2: FILTRO DE SEGURIDAD (ESCUDO) -->
+        <div id="viewGatekeeper" style="display: none;">
+            <span class="shield-icon">🛡️</span>
+            <h2>Área Restringida</h2>
+            <span class="box-subtitle">Se requiere autorización del Administrador</span>
             
-            <div class="recorrido-anios derecha">
-                <div class="dato dato-der">
-                    <div class="anio b1">-- 2021-----2023</div>
-                    <div class="linea c1"></div>
-                    <div class="info c1">
-                        <h3>Perito contador con orientacion en computacion.</h3>
-                        <p>Colegio el paraiso.</p>
-                    </div>
+            <form id="shieldForm" class="form-content-wrapper">
+                <div class="input-group">
+                    <label>Contraseña Maestra</label>
+                    <input type="password" id="gatekeeperPass" required placeholder="Introduce la clave maestra">
                 </div>
-            </div>
-            <div class="recorrido-anios izquierda">
-                <div class="dato dato-izq">
-                   
-                    </div>
-            </div>
-            <div class="recorrido-anios derecha">
-                <div class="dato dato-der">
-                    <div class="anio b3">-- 2018-----2020</div>
-                    <div class="linea c3"></div>
-                    <div class="info c3">
-                        <h3>Nivel de educacion media</h3>
-                        <p>INEB de telesecundaria aldea ixquebaj.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="recorrido-anios izquierda">
-                <div class="dato dato-izq">
-                    <div class="info c4">
-                        <h3>Educacion primario.</h3>
-                        <p>Escuela oficial rural mixta aldea ixquebaj.</p>
-                    </div>
-                    <div class="linea c4"></div>
-                    <div class="anio b4">-- 2010-----2017</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECCION CONTACTO -->
-    <section class="contacto" id="contacto">
-        <div class="banner">
-            <p>Tienes algun proyecto?</p>
-            <h2>Trabajemos juntos!</h2>
-            <button>Comencemos ahora</button>
-        </div>
-        <div class="contenido">
-            <h2 class="titulo-seccion">CONTACTAME AHORA</h2>
-            <div class="fila">
-                <div class="item">
-                    <span class="icono">
-                        <i class="fa-solid fa-location-dot"></i>
-                    </span>
-                    <h3>Mi Ubicación</h3>
-                    <p>San Sebastian Coatan,Huehuetenango. <br>Guatemala</p>
-                </div>
-                <div class="item">
-                    <span class="icono">
-                        <i class="fa-solid fa-phone"></i>
-                    </span>
-                    <h3>Número Teléfono</h3>
-                    <p>(+502) 45 78 61 56 <br> (+502) 35 95 66 58</p>
-                </div>
-                <div class="item">
-                    <span class="icono">
-                        <i class="fa-solid fa-envelope"></i>
-                    </span>
-                    <h3>Dirección Email</h3>
-                    <p>franckfelipe17@gmail.com</p>
-                </div>
-            </div>
-
-           
-
-                <div class="col">
-                    
-                </div>
-            </div>
-        </div>
-    </section>
-    <footer>
-        <h2>Francys-code WEB DEVELOPER 
-            <h2>Gracias por visitarme
-                 </h2>
-
-        <div class="redes">
-            <span class="red r1">
-                <i class="fa-brands fa-facebook-f"><a href="https://www.facebook.com/marty.felix.583?mibextid=ZbWKwL"><button></button></a></i>
-            </span>
+                <button type="submit">Verificar Identidad</button>
+                <button type="button" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #a0aec0; margin-top: 8px;" onclick="cambiarModo('login')">Cancelar</button>
+                <div class="error-message" id="gatekeeperError">❌ Código inválido. Acceso denegado.</div>
+            </form>
         </div>
 
-        <p>volver al inicio <a href="#">click aqui !</a></p>
+        <!-- VISTA 3: RECUPERACIÓN DE CONTRASEÑAS -->
+        <div id="viewRecovery" style="display: none;">
+            <h2>Recuperar Clave</h2>
+            <span class="box-subtitle">Busca tus credenciales registradas</span>
+            
+            <form id="recoveryForm" class="form-content-wrapper">
+                <div class="input-group">
+                    <label>Escribe el nombre de Usuario</label>
+                    <input type="text" id="recoveryUser" required placeholder="Usuario a buscar">
+                </div>
+                <button type="submit">Consultar Contraseña</button>
+                <button type="button" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #a0aec0; margin-top: 8px;" onclick="cambiarModo('login')">Volver</button>
+            </form>
+        </div>
 
-    </footer>
+        <!-- VISTA 4: CONSOLA DE ADMINISTRACIÓN -->
+        <div id="viewManagement" style="display: none;">
+            <h2>Consola de Control</h2>
+            <span class="box-subtitle">Gestión global del sistema</span>
+            
+            <div class="form-content-wrapper">
+                
+                <!-- Módulo A: Configurar Cuenta del Admin -->
+                <div class="section-title">Actualizar Cuenta Admin</div>
+                <div class="admin-panel-box">
+                    <div class="input-group">
+                        <label>Nuevo Nombre Admin</label>
+                        <input type="text" id="changeAdminUser" placeholder="Nombre nuevo">
+                    </div>
+                    <div class="input-group">
+                        <label>Nueva Clave Admin</label>
+                        <input type="password" id="changeAdminPass" placeholder="Clave nueva">
+                    </div>
+                    <button type="button" style="background-color: #22c55e;" onclick="procesarCambioAdmin()">Guardar Cambios Admin</button>
+                </div>
 
-    <script src="script.js"></script>
+                <!-- Módulo B: Registrar Nuevos Usuarios Estándar -->
+                <div class="section-title">Crear Nuevo Usuario Estándar</div>
+                <div class="admin-panel-box">
+                    <div class="input-group">
+                        <label>Nombre del Usuario</label>
+                        <input type="text" id="createStdUser" placeholder="Ej: pedro44">
+                    </div>
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="createStdPass" placeholder="••••••••">
+                    </div>
+                    <!-- ESTE BOTÓN AHORA SERÁ COMPLETAMENTE ACCESIBLE HACIENDO SCROLL DOWN -->
+                    <button type="button" onclick="procesarCrearUsuarioEst()">Registrar Usuario</button>
+                </div>
+
+                <!-- Módulo C: Listado Completo -->
+                <div class="section-title">Usuarios Estándar Activos</div>
+                <div id="usersList"></div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // IMÁGENES DE FONDO AUTOMÁTICAS
+        // ==========================================
+        const imagenes = ["3.jpg", "2.jpg", "1.jpg"];
+        let indiceActual = 0;
+        function cambiarFondo() {
+            if(imagenes.length > 0) {
+                document.body.style.backgroundImage = `url('${imagenes[indiceActual]}')`;
+                indiceActual = (indiceActual + 1) % imagenes.length;
+            }
+        }
+        cambiarFondo();
+        setInterval(cambiarFondo, 300000);
+
+        // ==========================================
+        // LÓGICA DE CONTROL DE VISTAS (MODOS)
+        // ==========================================
+        let modoActual = "login";
+
+        if (!localStorage.getItem("CONFIG_ADMIN_USER")) {
+            localStorage.setItem("CONFIG_ADMIN_USER", "admin");
+            localStorage.setItem("CONFIG_ADMIN_PASS", "1234");
+        }
+
+        function controladorBotonFlotante() {
+            if (modoActual !== "login") {
+                cambiarModo('login');
+            } else {
+                cambiarModo('bloqueo');
+            }
+        }
+
+        function cambiarModo(nuevoModo) {
+            modoActual = nuevoModo;
+            
+            const vLogin = document.getElementById("viewLogin");
+            const vGatekeeper = document.getElementById("viewGatekeeper");
+            const vRecovery = document.getElementById("viewRecovery");
+            const vManagement = document.getElementById("viewManagement");
+            const btnFlotante = document.getElementById("btnAdmin");
+            const cajaContenedora = document.getElementById("boxContainer");
+
+            // Ocultar todos los paneles
+            vLogin.style.display = "none";
+            vGatekeeper.style.display = "none";
+            vRecovery.style.display = "none";
+            vManagement.style.display = "none";
+
+            // Limpiar errores y regresar el scroll de la tarjeta arriba automáticamente
+            document.getElementById("loginError").style.display = "none";
+            document.getElementById("gatekeeperError").style.display = "none";
+            cajaContenedora.classList.remove('shake-error');
+            cajaContenedora.scrollTop = 0; 
+
+            if (nuevoModo === "login") {
+                vLogin.style.display = "block";
+                btnFlotante.textContent = "⚙️";
+                document.getElementById("loginForm").reset();
+            } 
+            else if (nuevoModo === "bloqueo") {
+                vGatekeeper.style.display = "block";
+                btnFlotante.textContent = "🚪";
+                document.getElementById("shieldForm").reset();
+            } 
+            else if (nuevoModo === "recuperacion") {
+                vRecovery.style.display = "block";
+                btnFlotante.textContent = "🚪";
+                document.getElementById("recoveryForm").reset();
+            } 
+            else if (nuevoModo === "gestion") {
+                vManagement.style.display = "block";
+                btnFlotante.textContent = "🚪";
+                
+                document.getElementById("changeAdminUser").value = "";
+                document.getElementById("changeAdminPass").value = "";
+                document.getElementById("createStdUser").value = "";
+                document.getElementById("createStdPass").value = "";
+                
+                actualizarListaUsuarios();
+            }
+        }
+
+        // Comprobar escudo de seguridad
+        document.getElementById('shieldForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const claveIntroducida = document.getElementById('gatekeeperPass').value;
+            const claveAdminActual = localStorage.getItem("CONFIG_ADMIN_PASS");
+            const tarjeta = document.getElementById('boxContainer');
+            const errorBloqueo = document.getElementById('gatekeeperError');
+
+            if (claveIntroducida === claveAdminActual) {
+                cambiarModo('gestion');
+            } else {
+                tarjeta.classList.remove('shake-error');
+                setTimeout(() => {
+                    tarjeta.classList.add('shake-error');
+                    errorBloqueo.style.display = "flex";
+                }, 10);
+            }
+        });
+
+        // Cambiar cuenta raíz del admin
+        function procesarCambioAdmin() {
+            const nuevoUser = document.getElementById('changeAdminUser').value.trim();
+            const nuevaPass = document.getElementById('changeAdminPass').value.trim();
+
+            if(!nuevoUser || !nuevaPass) {
+                alert("Rellena el nombre y clave nuevos para el Administrador.");
+                return;
+            }
+
+            localStorage.setItem("CONFIG_ADMIN_USER", nuevoUser);
+            localStorage.setItem("CONFIG_ADMIN_PASS", nuevaPass);
+            alert(`¡Administrador modificado con éxito!\nNuevo Usuario Master: ${nuevoUser}`);
+            cambiarModo('login');
+        }
+
+        // Crear usuario común
+        function procesarCrearUsuarioEst() {
+            const usuario = document.getElementById('createStdUser').value.trim();
+            const contrasena = document.getElementById('createStdPass').value.trim();
+            const adminUserActual = localStorage.getItem("CONFIG_ADMIN_USER");
+
+            if(!usuario || !contrasena) {
+                alert("Ingresa datos válidos para crear el usuario estándar.");
+                return;
+            }
+            if(usuario.toLowerCase() === adminUserActual.toLowerCase()) {
+                alert("No puedes usar el mismo nombre del Administrador.");
+                return;
+            }
+
+            localStorage.setItem("USER_" + usuario, contrasena);
+            document.getElementById('createStdUser').value = "";
+            document.getElementById('createStdPass').value = "";
+            actualizarListaUsuarios();
+            alert(`Usuario estándar "${usuario}" guardado correctamente.`);
+        }
+
+        function actualizarListaUsuarios() {
+            const listaContenedor = document.getElementById("usersList");
+            listaContenedor.innerHTML = "";
+            let contador = 0;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const llave = localStorage.key(i);
+                if(llave.startsWith("USER_")) {
+                    contador++;
+                    const nombreLimpio = llave.replace("USER_", "");
+                    const claveUsuario = localStorage.getItem(llave);
+
+                    const item = document.createElement("div");
+                    item.className = "user-item";
+                    item.innerHTML = `
+                        <div class="user-info">
+                            <span class="user-name">${nombreLimpio}</span>
+                            <span class="user-meta">Clave: ${claveUsuario}</span>
+                        </div>
+                        <button class="delete-btn" onclick="eliminarUsuario('${llave}')">Eliminar</button>
+                    `;
+                    listaContenedor.appendChild(item);
+                }
+            }
+            if(contador === 0) {
+                listaContenedor.innerHTML = "<p style='color:#718096; font-size:13px; text-align:center;'>Sin usuarios registrados.</p>";
+            }
+        }
+
+        function eliminarUsuario(llaveCompleta) {
+            if(confirm("¿Eliminar este usuario de forma permanente?")) {
+                localStorage.removeItem(llaveCompleta);
+                actualizarListaUsuarios();
+            }
+        }
+
+        // Ejecución Inicio de Sesión
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const usuario = document.getElementById('loginUser').value.trim();
+            const contrasena = document.getElementById('loginPass').value.trim();
+            const tarjeta = document.getElementById('boxContainer');
+            const badgeError = document.getElementById('loginError');
+
+            const adminUser = localStorage.getItem("CONFIG_ADMIN_USER");
+            const adminPass = localStorage.getItem("CONFIG_ADMIN_PASS");
+            const claveEstandar = localStorage.getItem("USER_" + usuario);
+
+            if (usuario === adminUser && contrasena === adminPass) {
+                sessionStorage.setItem("sesionActiva", usuario);
+                window.location.href = "invitado.html";
+                return;
+            }
+            else if (claveEstandar && claveEstandar === contrasena) {
+                sessionStorage.setItem("sesionActiva", usuario);
+                window.location.href = "invitado.html";
+                return;
+            }
+            
+            tarjeta.classList.remove('shake-error');
+            setTimeout(() => {
+                tarjeta.classList.add('shake-error');
+                badgeError.style.display = "flex";
+            }, 10);
+        });
+
+        // Ejecución Formulario Recuperación
+        document.getElementById('recoveryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const usuarioBuscado = document.getElementById('recoveryUser').value.trim();
+            const adminUser = localStorage.getItem("CONFIG_ADMIN_USER");
+
+            if (usuarioBuscado.toLowerCase() === adminUser.toLowerCase()) {
+                alert(`Cuenta Administrador.\nContraseña Maestra: ${localStorage.getItem("CONFIG_ADMIN_PASS")}`);
+                cambiarModo('login');
+            } else {
+                const claveEstandar = localStorage.getItem("USER_" + usuarioBuscado);
+                if(claveEstandar) {
+                    alert(`Cuenta Estándar.\nUsuario: ${usuarioBuscado}\nContraseña: ${claveEstandar}`);
+                    cambiarModo('login');
+                } else {
+                    alert("El usuario ingresado no existe en el sistema.");
+                }
+            }
+        });
+    </script>
 </body>
 </html>

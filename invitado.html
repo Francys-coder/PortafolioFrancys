@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Financiero Franck</title>
+    <style>
+        :root {
+            --bg-color: #0f111a;
+            --card-bg: #141828;
+            --sidebar-bg: #111422;
+            --text-color: #ffffff;
+            --text-muted: #718096;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-blue: #0078d4;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: sans-serif;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        /* MENÚ LATERAL */
+        .sidebar {
+            width: 250px; background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 20px 0;
+            flex-shrink: 0; transition: transform 0.2s ease; z-index: 99;
+        }
+
+        .sidebar-brand { padding: 0 20px 20px 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .sidebar-brand h2 { margin: 0; font-size: 18px; color: #a0aec0; }
+
+        .menu-list { list-style: none; padding: 0; margin: 0; }
+        .menu-item {
+            display: flex; align-items: center; padding: 12px 20px; color: #cbd5e0;
+            text-decoration: none; font-size: 15px; cursor: pointer; border-left: 4px solid transparent;
+        }
+        .menu-item.active { background-color: rgba(0, 120, 212, 0.1); color: #ffffff; border-left-color: var(--accent-blue); }
+        .menu-icon { margin-right: 10px; }
+
+        .btn-sidebar-logout { margin-top: auto; padding: 12px 20px; color: var(--accent-red); cursor: pointer; border-top: 1px solid var(--border-color); }
+
+        /* CAPA DE BLOQUEO PARA MÓVILES */
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 98; }
+
+        /* CONTENIDO CENTRAL */
+        .content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .top-header {
+            background-color: var(--card-bg); padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color); display: flex;
+            justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+        }
+        
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .top-header h1 { margin: 0; font-size: 18px; color: #ffffff; }
+        
+        .menu-toggle-btn { display: none; background: #111422; border: 1px solid var(--border-color); color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+        /* BIENVENIDA Y RESETEO */
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .welcome-badge { background: #1a2035; border: 1px solid #2d3748; padding: 6px 12px; border-radius: 20px; font-size: 13px; color: #ffffff; }
+        .btn-reset { background-color: var(--accent-red); color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; }
+
+        .view-container { padding: 20px; overflow-y: auto; flex: 1; }
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+
+        /* TARJETAS DEL TABLERO */
+        .dashboard-grid { display: flex; flex-direction: column; gap: 20px; max-width: 700px; }
+        .panel-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .panel-card h3 { margin: 0 0 15px 0; font-size: 16px; color: #a0aec0; }
+
+        .balance-card { background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; text-align: center; }
+        .balance-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+        .balance-amount { font-size: 30px; font-weight: bold; margin-top: 5px; }
+
+        .metrics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .metric-subcard { background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; }
+        .metric-subcard .val { font-size: 18px; font-weight: bold; margin-top: 4px; }
+
+        .ratio-container { background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; text-align: center; margin-top: 15px; }
+        .ratio-bar-bg { background: rgba(255,255,255,0.05); height: 10px; border-radius: 5px; overflow: hidden; margin: 10px 0; width: 100%; display: flex; }
+        .ratio-bar-fill { background: var(--accent-green); height: 100%; width: 0%; }
+        .ratio-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+
+        /* FORMULARIOS */
+        .transaction-form { display: flex; flex-direction: column; gap: 15px; }
+        .input-group { text-align: left; }
+        .input-group label { display: block; margin-bottom: 6px; color: #a0aec0; font-size: 13px; }
+        .input-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
+        .currency-symbol { position: absolute; left: 12px; color: #718096; font-weight: bold; font-size: 15px; }
+        .input-wrapper input {
+            width: 100%; padding: 10px 12px 10px 30px; background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #ffffff; font-size: 15px; outline: none;
+        }
+
+        .btn-group { display: flex; gap: 12px; }
+        .btn-action { flex: 1; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-deposit { background-color: var(--accent-green); }
+        .btn-withdraw { background-color: var(--accent-red); }
+
+        .history-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-clear-history { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.2); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+        .history-list, .goals-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.01); font-size: 14px; }
+        .item-details { display: flex; flex-direction: column; text-align: left; }
+        .item-date { color: var(--text-muted); font-size: 11px; margin-top: 3px; }
+
+        /* TARJETAS DE METAS */
+        .goal-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        .goal-completed-card { border-color: rgba(34, 197, 94, 0.3); }
+        .goal-title-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+        .goal-card-controls { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 12px; }
+        .goal-input-inline { display: flex; gap: 8px; width: 100%; }
+        .btn-goal-opt { padding: 8px 12px; font-size: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; color: white; }
+        .btn-goal-add { background-color: var(--accent-blue); flex: 1; }
+        .btn-goal-release { background-color: var(--accent-green); width: 100%; padding: 10px; }
+        .btn-goal-del { background: rgba(255, 77, 79, 0.1); color: var(--accent-red); border: 1px solid rgba(255, 77, 79, 0.15); }
+
+        /* INTERFAZ DE ALERTA MODERNA INTEGRADA (REEMPLAZA AL CONFIRM) */
+        .modal-alert-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(10, 12, 22, 0.7); backdrop-filter: blur(8px); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .modal-alert-box {
+            background: #141828; border: 1px solid rgba(255, 77, 79, 0.3); padding: 30px;
+            border-radius: 16px; width: 340px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        .modal-alert-box h2 { margin: 0 0 10px 0; font-size: 20px; color: #ffffff; }
+        .modal-alert-box p { font-size: 14px; color: #a0aec0; margin: 0 0 20px 0; line-height: 1.5; }
+        .modal-btn-group { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: 0; top: 0; height: 100%; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay.open { display: block; }
+            .menu-toggle-btn { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ventana de Confirmación Moderna Integrada -->
+    <div class="modal-alert-overlay" id="customConfirmModal">
+        <div class="modal-alert-box">
+            <span style="font-size: 40px; color: var(--accent-red); display: block; margin-bottom: 10px;">⚠️</span>
+            <h2>¿Estás seguro?</h2>
+            <p>Esta acción borrará permanentemente todo tu saldo disponible, el historial de movimientos y tus metas de ahorro.</p>
+            <div class="modal-btn-group">
+                <button type="button" class="modal-btn" style="background: #2d3748; color: white;" onclick="cerrarModalReseteo()">Cancelar</button>
+                <button type="button" class="modal-btn" style="background: var(--accent-red); color: white;" onclick="confirmarReseteoAbsoluto()">Resetear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="menuOverlay" onclick="alternarMenuMovil()"></div>
+
+    <!-- NAVEGACIÓN LATERAL -->
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-brand">
+            <h2>FinanzasPro</h2>
+            <span>Consola Estable</span>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="cambiarPestaña('resumen', this)">
+                <span class="menu-icon">📊</span> Resumen General
+            </li>
+            <li class="menu-item" onclick="cambiarPestaña('movimientos', this)">
+                <span class="menu-icon">💸</span> Movimientos de Caja
+            </li>
+            <li class="menu-item" onclick="cambiarPestaña('historial', this)">
+                <span class="menu-icon">📜</span> Historial de Cuenta
+            </li>
+            <li class="menu-item" onclick="cambiarPestaña('ahorros', this)">
+                <span class="menu-icon">🎯</span> Bóveda de Ahorros
+            </li>
+        </ul>
+        <div class="btn-sidebar-logout" onclick="cerrarSesionPlataforma()">
+            <span class="menu-icon">🚪</span> Salir
+        </div>
+    </div>
+
+    <!-- PANEL CENTRAL -->
+    <div class="content-area">
+        <div class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle-btn" onclick="alternarMenuMovil()">☰ Menú</button>
+                <h1 id="currentTabTitle">Resumen General</h1>
+            </div>
+            <div class="header-right">
+                <div class="welcome-badge">¡Bienvenido, Franck!</div>
+                <button type="button" class="btn-reset" onclick="abrirModalReseteo()">Resetear Todo</button>
+            </div>
+        </div>
+
+        <div class="view-container">
+            
+            <!-- VISTA 1: RESUMEN -->
+            <div id="view-resumen" class="tab-view active">
+                <div class="dashboard-grid">
+                    <div class="balance-card">
+                        <div class="balance-label">Fondo Madre (Saldo Disponible)</div>
+                        <div class="balance-amount" id="balanceDisplay">Q0.00</div>
+                    </div>
+                    
+                    <div class="metrics-row">
+                        <div class="metric-subcard">
+                            <div class="balance-label" style="color: var(--accent-green);">Total Ingresos</div>
+                            <div class="val" id="totalIngresosDisplay" style="color: var(--accent-green);">Q0.00</div>
+                        </div>
+                        <div class="metric-subcard">
+                            <div class="balance-label" style="color: var(--accent-red);">Total Retiros</div>
+                            <div class="val" id="totalRetirosDisplay" style="color: var(--accent-red);">Q0.00</div>
+                        </div>
+                    </div>
+
+                    <div class="ratio-container">
+                        <div class="balance-label">Proporción Financiera</div>
+                        <div class="ratio-bar-bg">
+                            <div class="ratio-bar-fill" id="ratioBarFill"></div>
+                        </div>
+                        <div class="ratio-legend">
+                            <span id="lblPorcentajeIngreso">Ingresos: 0%</span>
+                            <span id="lblPorcentajeRetiro">Retiros: 0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 2: OPERACIONES -->
+            <div id="view-movimientos" class="tab-view">
+                <div class="dashboard-grid">
+                    <div class="panel-card">
+                        <h3>Registrar Operación de Caja</h3>
+                        <div class="transaction-form">
+                            <div class="input-group">
+                                <label>Descripción / Concepto</label>
+                                <div class="input-wrapper"><input type="text" id="txDescription" placeholder="Ej: Venta de mercadería"></div>
+                            </div>
+                            <div class="input-group">
+                                <label>Monto Económico</label>
+                                <div class="input-wrapper">
+                                    <span class="currency-symbol">Q</span>
+                                    <input type="number" id="txAmount" step="0.01" min="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn-action btn-deposit" onclick="ejecutarTransaccion('ingreso')">Ingresar dinero</button>
+                                <button type="button" class="btn-action btn-withdraw" onclick="ejecutarTransaccion('retiro')">Retirar dinero</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 3: HISTORIAL -->
+            <div id="view-historial" class="tab-view">
+                <div class="dashboard-grid">
+                    <div class="panel-card">
+                        <div class="history-header-row">
+                            <h3>Bitácora de Movimientos</h3>
+                            <button type="button" class="btn-clear-history" onclick="eliminarHistorialCompleto()">Limpiar Historial</button>
+                        </div>
+                        <div class="history-list" id="historyContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 4: BÓVEDA AHORROS -->
+            <div id="view-ahorros" class="tab-view">
+                <div class="dashboard-grid">
+                    <div class="panel-card">
+                        <h3>Crear Objetivo de Ahorro</h3>
+                        <div class="transaction-form">
+                            <div class="input-group">
+                                <label>Nombre de la Meta</label>
+                                <div class="input-wrapper"><input type="text" id="goalName" placeholder="Ej: Herramientas"></div>
+                            </div>
+                            <div class="input-group">
+                                <label>Monto Meta Final</label>
+                                <div class="input-wrapper">
+                                    <span class="currency-symbol">Q</span>
+                                    <input type="number" id="goalTarget" step="0.01" min="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <button type="button" style="background-color: var(--accent-blue);" class="btn-action" onclick="crearNuevaMetaAhorro()">Fijar Meta</button>
+                        </div>
+                    </div>
+                    <div class="panel-card">
+                        <h3>Metas Activas</h3>
+                        <div class="goals-list" id="goalsContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let saldoTotal = parseFloat(localStorage.getItem('FINANZAS_SALDO')) || 0.00;
+        let transacciones = [];
+        try { transacciones = JSON.parse(localStorage.getItem('FINANZAS_HISTORIAL')) || []; } catch(e) { transacciones = []; }
+        let metasIndependientes = [];
+        try { metasIndependientes = JSON.parse(localStorage.getItem('FINANZAS_METAS_IND')) || []; } catch(e) { metasIndependientes = []; }
+
+        actualizarPantalla();
+
+        function ejecutarTransaccion(tipo) {
+            const descInput = document.getElementById('txDescription');
+            const montoInput = document.getElementById('txAmount');
+            const monto = parseFloat(montoInput.value);
+            const descripcion = descInput.value.trim() || (tipo === 'ingreso' ? 'Ingreso Efectivo' : 'Retiro Efectivo');
+
+            if (isNaN(monto) || monto <= 0) { alert("Ingresa un monto válido."); return; }
+            if (tipo === 'retiro' && monto > saldoTotal) { alert("Fondos insuficientes."); return; }
+
+            saldoTotal = tipo === 'ingreso' ? saldoTotal + monto : saldoTotal - monto;
+            saldoTotal = Math.round(saldoTotal * 100) / 100;
+
+            transacciones.unshift({
+                id: Date.now(), tipo: tipo, descripcion: descripcion, monto: monto,
+                fecha: new Date().toLocaleString('es-GT', { hour12: true })
+            });
+
+            guardarEnDisco();
+            descInput.value = ''; montoInput.value = '';
+            actualizarPantalla();
+        }
+
+        function eliminarHistorialCompleto() {
+            if (transacciones.length === 0) return;
+            if (confirm("¿Vaciar el historial de movimientos?")) {
+                transacciones = [];
+                localStorage.setItem('FINANZAS_HISTORIAL', JSON.stringify([]));
+                actualizarPantalla();
+            }
+        }
+
+        function crearNuevaMetaAhorro() {
+            const nameInput = document.getElementById('goalName');
+            const targetInput = document.getElementById('goalTarget');
+            const targetMonto = parseFloat(targetInput.value);
+            const nombre = nameInput.value.trim();
+
+            if (!nombre || isNaN(targetMonto) || targetMonto <= 0) { alert("Ingresa los datos correctamente."); return; }
+
+            metasIndependientes.push({
+                id: Math.floor(Math.random() * 1000000), nombre: nombre, objetivo: targetMonto, ahorrado: 0.00
+            });
+
+            localStorage.setItem('FINANZAS_METAS_IND', JSON.stringify(metasIndependientes));
+            nameInput.value = ''; targetInput.value = '';
+            actualizarPantalla();
+        }
+
+        function abonarAMetaIndependiente(idMeta) {
+            const index = metasIndependientes.findIndex(m => m.id === idMeta);
+            if (index === -1) return;
+            const meta = metasIndependientes[index];
+
+            const inputAbono = document.getElementById(`input-goal-${idMeta}`);
+            const montoAAbonar = parseFloat(inputAbono.value);
+            const faltante = Math.round((meta.objetivo - meta.ahorrado) * 100) / 100;
+
+            if (isNaN(montoAAbonar) || montoAAbonar <= 0) { alert("Monto no válido."); return; }
+            if (montoAAbonar > faltante) { alert(`Monto excede lo necesario. Faltan Q${faltante}.`); return; }
+
+            meta.ahorrado = Math.round((meta.ahorrado + montoAAbonar) * 100) / 100;
+            localStorage.setItem('FINANZAS_METAS_IND', JSON.stringify(metasIndependientes));
+            actualizarPantalla();
+        }
+
+        function extraerFondosMeta(idMeta) {
+            const index = metasIndependientes.findIndex(m => m.id === idMeta);
+            if (index === -1) return;
+            const meta = metasIndependientes[index];
+
+            alert(`🏆 Fondos liberados: Q${meta.ahorrado.toFixed(2)} de la meta "${meta.nombre}".`);
+            metasIndependientes.splice(index, 1);
+            localStorage.setItem('FINANZAS_METAS_IND', JSON.stringify(metasIndependientes));
+            actualizarPantalla();
+        }
+
+        function eliminarMetaIndependiente(idMeta) {
+            metasIndependientes = metasIndependientes.filter(m => m.id !== idMeta);
+            localStorage.setItem('FINANZAS_METAS_IND', JSON.stringify(metasIndependientes));
+            actualizarPantalla();
+        }
+
+        /* LÓGICA DEL POPUP MODERNO DE RESETEO */
+        function abrirModalReseteo() {
+            document.getElementById('customConfirmModal').style.display = 'flex';
+        }
+
+        function cerrarModalReseteo() {
+            document.getElementById('customConfirmModal').style.display = 'none';
+        }
+
+        function confirmarReseteoAbsoluto() {
+            saldoTotal = 0.00;
+            transacciones = [];
+            metasIndependientes = [];
+            guardarEnDisco();
+            localStorage.setItem('FINANZAS_METAS_IND', JSON.stringify([]));
+            actualizarPantalla();
+            cerrarModalReseteo();
+        }
+
+        function guardarEnDisco() {
+            localStorage.setItem('FINANZAS_SALDO', saldoTotal.toFixed(2));
+            localStorage.setItem('FINANZAS_HISTORIAL', JSON.stringify(transacciones));
+        }
+
+        function actualizarPantalla() {
+            document.getElementById('balanceDisplay').textContent = `Q${saldoTotal.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+
+            let acumuladoIngresos = 0;
+            let acumuladoRetiros = 0;
+
+            transacciones.forEach(item => {
+                if (item.tipo === 'ingreso') acumuladoIngresos += item.monto;
+                if (item.tipo === 'retiro') acumuladoRetiros += item.monto;
+            });
+
+            document.getElementById('totalIngresosDisplay').textContent = `Q${acumuladoIngresos.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+            document.getElementById('totalRetirosDisplay').textContent = `Q${acumuladoRetiros.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+
+            const totalVolumen = acumuladoIngresos + acumuladoRetiros;
+            let porcIngreso = 0;
+            let porcRetiro = 0;
+
+            if (totalVolumen > 0) {
+                porcIngreso = Math.round((acumuladoIngresos / totalVolumen) * 100);
+                porcRetiro = 100 - porcIngreso;
+            }
+
+            document.getElementById('ratioBarFill').style.width = `${porcIngreso}%`;
+            document.getElementById('lblPorcentajeIngreso').textContent = `Ingresos: ${porcIngreso}%`;
+            document.getElementById('lblPorcentajeRetiro').textContent = `Retiros: ${porcRetiro}%`;
+
+            const contHistorial = document.getElementById('historyContainer');
+            contHistorial.innerHTML = transacciones.length === 0 ? '<p style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px 0;">Historial vacío.</p>' : '';
+            transacciones.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'history-item';
+                el.innerHTML = `
+                    <div class="item-details"><b>${item.descripcion}</b><span class="item-date">${item.fecha}</span></div>
+                    <span class="${item.tipo === 'ingreso' ? 'type-ingreso' : 'type-retiro'}">${item.tipo === 'ingreso' ? '+' : '-'} Q${item.monto.toLocaleString('es-GT', {minimumFractionDigits:2})}</span>
+                `;
+                contHistorial.appendChild(el);
+            });
+
+            const contMetas = document.getElementById('goalsContainer');
+            contMetas.innerHTML = metasIndependientes.length === 0 ? '<p style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px 0;">No hay metas fíjadas.</p>' : '';
+            metasIndependientes.forEach(meta => {
+                const porc = meta.objetivo > 0 ? Math.min(((meta.ahorrado / meta.objetivo) * 100), 100).toFixed(0) : 0;
+                const esCumplida = meta.ahorrado >= meta.objetivo;
+                const el = document.createElement('div');
+                el.className = `goal-card ${esCumplida ? 'goal-completed-card' : ''}`;
+                el.innerHTML = `
+                    <div class="goal-title-row"><span>${esCumplida ? '🏆' : '🎯'} ${meta.nombre}</span><span style="color:${esCumplida?'var(--accent-green)':'var(--accent-blue)'};">${porc}%</span></div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${porc}%; background:${esCumplida?'var(--accent-green)':'var(--accent-blue)'};"></div></div>
+                    <div class="goal-footer"><span>Ahorrado: Q${meta.ahorrado.toFixed(2)}</span><span>Objetivo: Q${meta.objetivo.toFixed(2)}</span></div>
+                    <div class="goal-card-controls">
+                        ${esCumplida ? `<button type="button" class="btn-goal-opt btn-goal-release" onclick="extraerFondosMeta(${meta.id})">💰 Liberar Fondos</button>` : `
+                            <div class="goal-input-inline">
+                                <div class="input-wrapper"><span class="currency-symbol">Q</span><input type="number" id="input-goal-${meta.id}" placeholder="Monto"></div>
+                                <button type="button" class="btn-goal-opt btn-goal-add" onclick="abonarAMetaIndependiente(${meta.id})">Ahorrar</button>
+                            </div>
+                            <button type="button" class="btn-goal-opt btn-goal-del" onclick="eliminarMetaIndependiente(${meta.id})">❌</button>
+                        `}
+                    </div>
+                `;
+                contMetas.appendChild(el);
+            });
+        }
+
+        function cambiarPestaña(idVistaTarget, elementoMenuClicado) {
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.tab-view').forEach(vista => vista.classList.remove('active'));
+
+            elementoMenuClicado.classList.add('active');
+            document.getElementById(`view-${idVistaTarget}`).classList.add('active');
+            document.getElementById('currentTabTitle').textContent = elementoMenuClicado.innerText.substring(3);
+
+            document.getElementById('sidebarMenu').classList.remove('open');
+            document.getElementById('menuOverlay').classList.remove('open');
+        }
+
+        function alternarMenuMovil() {
+            document.getElementById('sidebarMenu').classList.toggle('open');
+            document.getElementById('menuOverlay').classList.toggle('open');
+        }
+
+        function cerrarSesionPlataforma() {
+            sessionStorage.clear();
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>
